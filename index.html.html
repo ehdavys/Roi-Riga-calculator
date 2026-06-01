@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apartment ROI Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --border: #e2e0d8;
+    --text: #1a1916;
+    --muted: #8a8880;
+    --accent: #1a1916;
+    --green-bg: #edf5e8;
+    --green-text: #2d6a1f;
+    --yellow-bg: #fdf6e3;
+    --yellow-text: #8a6200;
+    --red-bg: #fcecea;
+    --red-text: #a32020;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+
+  .header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .header span {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    height: 42px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 12px;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .field input:focus { border-color: var(--accent); }
+
+  .vacancy-row {
+    margin-bottom: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .vacancy-row .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .vacancy-row label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .vacancy-val {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    height: 3px;
+    -webkit-appearance: none;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .metric .label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .metric .value {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .verdict {
+    border-radius: 8px;
+    padding: 13px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 16px;
+    letter-spacing: 0.02em;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .breakdown {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .breakdown-title {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 13px;
+  }
+
+  .breakdown-row .desc { color: var(--muted); }
+
+  .breakdown-row .amt {
+    font-family: var(--mono);
+    font-weight: 500;
+  }
+
+  .breakdown-row.neg .amt { color: #a32020; }
+  .breakdown-row.total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 10px; }
+  .breakdown-row.total .desc { color: var(--text); font-weight: 500; }
+  .breakdown-row.total .amt { font-size: 15px; }
+
+  .onepct {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  @media (max-width: 480px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>ROI Calculator</h1>
+  <span>Rīga · Dzīvokļi</span>
+</div>
+
+<div class="grid">
+  <div class="field">
+    <label>Cena (€)</label>
+    <input type="number" id="price" value="50000">
+  </div>
+  <div class="field">
+    <label>Darījuma izmaksas (€)</label>
+    <input type="number" id="trans" value="1000">
+  </div>
+  <div class="field">
+    <label>Renovācija (€)</label>
+    <input type="number" id="reno" value="0">
+  </div>
+  <div class="field">
+    <label>Mēbeles & setup (€)</label>
+    <input type="number" id="furn" value="2000">
+  </div>
+  <div class="field">
+    <label>Īre / mēn (€)</label>
+    <input type="number" id="rent" value="400">
+  </div>
+  <div class="field">
+    <label>Izdevumi / mēn (€)</label>
+    <input type="number" id="exp" value="40">
+  </div>
+</div>
+
+<div class="vacancy-row">
+  <div class="top">
+    <label>Tukšuma periods</label>
+    <span class="vacancy-val" id="vac-out">5%</span>
+  </div>
+  <input type="range" id="vac" min="0" max="20" step="1" value="5">
+</div>
+
+<div class="metrics">
+  <div class="metric">
+    <div class="label">Kopējā cena</div>
+    <div class="value" id="m-total">€53 000</div>
+  </div>
+  <div class="metric">
+    <div class="label">Bruto ienesīgums</div>
+    <div class="value" id="m-gross">9.1%</div>
+  </div>
+  <div class="metric">
+    <div class="label">Neto ienesīgums</div>
+    <div class="value" id="m-net">8.2%</div>
+  </div>
+  <div class="metric">
+    <div class="label">Atmaksāšanās</div>
+    <div class="value" id="m-pay">12.2g</div>
+  </div>
+</div>
+
+<div class="verdict" id="verdict"></div>
+
+<div class="breakdown">
+  <div class="breakdown-title">Gada aprēķins</div>
+  <div class="breakdown-row">
+    <span class="desc">Bruto īres ienākumi</span>
+    <span class="amt" id="b-gross">€4 800</span>
+  </div>
+  <div class="breakdown-row neg">
+    <span class="desc">Tukšuma zaudējumi</span>
+    <span class="amt" id="b-vac">− €240</span>
+  </div>
+  <div class="breakdown-row neg">
+    <span class="desc">Gada izdevumi</span>
+    <span class="amt" id="b-exp">− €480</span>
+  </div>
+  <div class="breakdown-row total">
+    <span class="desc">Neto ienākumi</span>
+    <span class="amt" id="b-net">€4 080</span>
+  </div>
+  <div class="onepct" id="onepct"></div>
+</div>
+
+<script>
+function fmt(n) {
+  return '€' + Math.round(n).toLocaleString('lv-LV');
+}
+function pct(n) {
+  return n.toFixed(1) + '%';
+}
+
+function calc() {
+  var price = parseFloat(document.getElementById('price').value) || 0;
+  var trans = parseFloat(document.getElementById('trans').value) || 0;
+  var reno  = parseFloat(document.getElementById('reno').value)  || 0;
+  var furn  = parseFloat(document.getElementById('furn').value)  || 0;
+  var rent  = parseFloat(document.getElementById('rent').value)  || 0;
+  var exp   = parseFloat(document.getElementById('exp').value)   || 0;
+  var vac   = parseFloat(document.getElementById('vac').value)   || 0;
+
+  document.getElementById('vac-out').textContent = vac + '%';
+
+  var total      = price + trans + reno + furn;
+  var annGross   = rent * 12;
+  var vacLoss    = annGross * (vac / 100);
+  var annExp     = exp * 12;
+  var netInc     = annGross - vacLoss - annExp;
+  var grossYield = total > 0 ? (annGross / total) * 100 : 0;
+  var netYield   = total > 0 ? (netInc   / total) * 100 : 0;
+  var payback    = netInc > 0 ? total / netInc : 0;
+  var onePct     = total * 0.01;
+
+  document.getElementById('m-total').textContent = fmt(total);
+  document.getElementById('m-gross').textContent = pct(grossYield);
+  document.getElementById('m-net').textContent   = pct(netYield);
+  document.getElementById('m-pay').textContent   = payback > 0 ? payback.toFixed(1) + 'g' : '—';
+  document.getElementById('b-gross').textContent = fmt(annGross);
+  document.getElementById('b-vac').textContent   = '− ' + fmt(vacLoss);
+  document.getElementById('b-exp').textContent   = '− ' + fmt(annExp);
+  document.getElementById('b-net').textContent   = fmt(netInc);
+  document.getElementById('onepct').textContent  = '1% likums: vajadzīga īre ' + fmt(onePct) + '/mēn · tu piedāvā ' + fmt(rent) + '/mēn';
+
+  var v = document.getElementById('verdict');
+  if (netYield >= 8) {
+    v.style.background = '#edf5e8'; v.style.color = '#2d6a1f';
+    v.textContent = '✓ Spēcīgs darījums — virs 8% neto mērķa';
+  } else if (netYield >= 6.5) {
+    v.style.background = '#fdf6e3'; v.style.color = '#8a6200';
+    v.textContent = '◐ Robežgadījums — pieņemams, bet ne ideāls';
+  } else if (netYield > 0) {
+    v.style.background = '#fcecea'; v.style.color = '#a32020';
+    v.textContent = '✕ Vājš — zem 6.5% neto, turpiniet meklēt';
+  } else {
+    v.style.background = '#f7f6f2'; v.style.color = '#8a8880';
+    v.textContent = 'Ievadi skaitļus augstāk';
+  }
+}
+
+['price','trans','reno','furn','rent','exp','vac'].forEach(function(id) {
+  document.getElementById(id).addEventListener('input', calc);
+});
+
+calc();
+</script>
+</body>
+</html>
