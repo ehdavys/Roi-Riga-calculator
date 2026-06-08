@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apartment ROI Calculator</title>
+<title>ROI Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #f7f6f2;
-    --surface: #ffffff;
-    --border: #e2e0d8;
-    --text: #1a1916;
-    --muted: #8a8880;
-    --accent: #1a1916;
-    --green-bg: #edf5e8;
-    --green-text: #2d6a1f;
-    --yellow-bg: #fdf6e3;
-    --yellow-text: #8a6200;
-    --red-bg: #fcecea;
-    --red-text: #a32020;
+    --bg: #1c1c1e;
+    --surface: #2c2c2e;
+    --surface2: #3a3a3c;
+    --border: #48484a;
+    --text: #ffffff;
+    --muted: #8e8e93;
+    --green-bg: #0d2010;
+    --green-text: #32d74b;
+    --yellow-bg: #2a2000;
+    --yellow-text: #ffd60a;
+    --red-bg: #2a0a08;
+    --red-text: #ff453a;
     --mono: 'DM Mono', monospace;
     --sans: 'DM Sans', sans-serif;
   }
@@ -31,6 +31,8 @@
     color: var(--text);
     min-height: 100vh;
     padding: 32px 24px;
+    max-width: 720px;
+    margin: 0 auto;
   }
 
   .header {
@@ -45,6 +47,7 @@
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    color: var(--text);
   }
 
   .header span {
@@ -73,15 +76,15 @@
 
   .field input {
     width: 100%;
-    height: 42px;
+    height: 44px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 0 12px;
     font-family: var(--mono);
     font-size: 14px;
     font-weight: 500;
-    color: var(--text);
+    color: #ffffff;
     outline: none;
     transition: border-color 0.15s;
     -moz-appearance: textfield;
@@ -90,7 +93,19 @@
   .field input::-webkit-outer-spin-button,
   .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
 
-  .field input:focus { border-color: var(--accent); }
+  .field input:focus { border-color: var(--muted); }
+
+  .field input.auto {
+    color: var(--muted);
+    border-style: dashed;
+  }
+
+  .field .sublabel {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: var(--mono);
+  }
 
   .vacancy-row {
     margin-bottom: 24px;
@@ -119,6 +134,7 @@
     font-family: var(--mono);
     font-size: 14px;
     font-weight: 500;
+    color: #ffffff;
   }
 
   input[type="range"] {
@@ -133,10 +149,10 @@
 
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--text);
     cursor: pointer;
   }
 
@@ -150,8 +166,8 @@
   .metric {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 12px;
+    border-radius: 10px;
+    padding: 14px 10px;
     text-align: center;
   }
 
@@ -161,7 +177,7 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   .metric .value {
@@ -169,11 +185,12 @@
     font-size: 18px;
     font-weight: 500;
     line-height: 1;
+    color: #ffffff;
   }
 
   .verdict {
-    border-radius: 8px;
-    padding: 13px 16px;
+    border-radius: 10px;
+    padding: 14px 16px;
     font-size: 13px;
     font-weight: 500;
     text-align: center;
@@ -185,7 +202,7 @@
   .breakdown {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 16px;
   }
 
@@ -211,11 +228,18 @@
   .breakdown-row .amt {
     font-family: var(--mono);
     font-weight: 500;
+    color: #ffffff;
   }
 
-  .breakdown-row.neg .amt { color: #a32020; }
-  .breakdown-row.total { border-top: 1px solid var(--border); margin-top: 6px; padding-top: 10px; }
-  .breakdown-row.total .desc { color: var(--text); font-weight: 500; }
+  .breakdown-row.neg .amt { color: var(--red-text); }
+
+  .breakdown-row.total {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 10px;
+  }
+
+  .breakdown-row.total .desc { color: var(--text); font-weight: 600; }
   .breakdown-row.total .amt { font-size: 15px; }
 
   .onepct {
@@ -225,6 +249,7 @@
     font-size: 11px;
     color: var(--muted);
     font-family: var(--mono);
+    line-height: 1.6;
   }
 
   @media (max-width: 480px) {
@@ -247,7 +272,8 @@
   </div>
   <div class="field">
     <label>Darījuma izmaksas (€)</label>
-    <input type="number" id="trans" value="1000">
+    <input type="number" id="trans" class="auto" readonly>
+    <div class="sublabel" id="trans-sub">auto: 2% + notārs</div>
   </div>
   <div class="field">
     <label>Renovācija (€)</label>
@@ -278,41 +304,41 @@
 <div class="metrics">
   <div class="metric">
     <div class="label">Kopējā cena</div>
-    <div class="value" id="m-total">€53 000</div>
+    <div class="value" id="m-total">—</div>
   </div>
   <div class="metric">
     <div class="label">Bruto ienesīgums</div>
-    <div class="value" id="m-gross">9.1%</div>
+    <div class="value" id="m-gross">—</div>
   </div>
   <div class="metric">
     <div class="label">Neto ienesīgums</div>
-    <div class="value" id="m-net">8.2%</div>
+    <div class="value" id="m-net">—</div>
   </div>
   <div class="metric">
     <div class="label">Atmaksāšanās</div>
-    <div class="value" id="m-pay">12.2g</div>
+    <div class="value" id="m-pay">—</div>
   </div>
 </div>
 
-<div class="verdict" id="verdict"></div>
+<div class="verdict" id="verdict" style="background:var(--surface);color:var(--muted);">Ievadi skaitļus augstāk</div>
 
 <div class="breakdown">
   <div class="breakdown-title">Gada aprēķins</div>
   <div class="breakdown-row">
     <span class="desc">Bruto īres ienākumi</span>
-    <span class="amt" id="b-gross">€4 800</span>
+    <span class="amt" id="b-gross">—</span>
   </div>
   <div class="breakdown-row neg">
     <span class="desc">Tukšuma zaudējumi</span>
-    <span class="amt" id="b-vac">− €240</span>
+    <span class="amt" id="b-vac">—</span>
   </div>
   <div class="breakdown-row neg">
     <span class="desc">Gada izdevumi</span>
-    <span class="amt" id="b-exp">− €480</span>
+    <span class="amt" id="b-exp">—</span>
   </div>
   <div class="breakdown-row total">
     <span class="desc">Neto ienākumi</span>
-    <span class="amt" id="b-net">€4 080</span>
+    <span class="amt" id="b-net">—</span>
   </div>
   <div class="onepct" id="onepct"></div>
 </div>
@@ -327,12 +353,19 @@ function pct(n) {
 
 function calc() {
   var price = parseFloat(document.getElementById('price').value) || 0;
-  var trans = parseFloat(document.getElementById('trans').value) || 0;
   var reno  = parseFloat(document.getElementById('reno').value)  || 0;
   var furn  = parseFloat(document.getElementById('furn').value)  || 0;
   var rent  = parseFloat(document.getElementById('rent').value)  || 0;
   var exp   = parseFloat(document.getElementById('exp').value)   || 0;
   var vac   = parseFloat(document.getElementById('vac').value)   || 0;
+
+  // Auto transaction costs: 2% tax + €200 notary
+  var trans = price > 0 ? Math.round(price * 0.02) + 200 : 0;
+  document.getElementById('trans').value = trans;
+  document.getElementById('trans-sub').textContent =
+    price > 0
+      ? '2% nodeva ' + fmt(price * 0.02) + ' + notārs €200'
+      : 'auto: 2% + notārs';
 
   document.getElementById('vac-out').textContent = vac + '%';
 
@@ -346,33 +379,37 @@ function calc() {
   var payback    = netInc > 0 ? total / netInc : 0;
   var onePct     = total * 0.01;
 
-  document.getElementById('m-total').textContent = fmt(total);
-  document.getElementById('m-gross').textContent = pct(grossYield);
-  document.getElementById('m-net').textContent   = pct(netYield);
+  document.getElementById('m-total').textContent = total > 0 ? fmt(total) : '—';
+  document.getElementById('m-gross').textContent = total > 0 ? pct(grossYield) : '—';
+  document.getElementById('m-net').textContent   = total > 0 ? pct(netYield)   : '—';
   document.getElementById('m-pay').textContent   = payback > 0 ? payback.toFixed(1) + 'g' : '—';
-  document.getElementById('b-gross').textContent = fmt(annGross);
-  document.getElementById('b-vac').textContent   = '− ' + fmt(vacLoss);
-  document.getElementById('b-exp').textContent   = '− ' + fmt(annExp);
-  document.getElementById('b-net').textContent   = fmt(netInc);
-  document.getElementById('onepct').textContent  = '1% likums: vajadzīga īre ' + fmt(onePct) + '/mēn · tu piedāvā ' + fmt(rent) + '/mēn';
+  document.getElementById('b-gross').textContent = annGross > 0 ? fmt(annGross) : '—';
+  document.getElementById('b-vac').textContent   = annGross > 0 ? '− ' + fmt(vacLoss) : '—';
+  document.getElementById('b-exp').textContent   = annExp > 0   ? '− ' + fmt(annExp)  : '—';
+  document.getElementById('b-net').textContent   = total > 0    ? fmt(netInc)          : '—';
+
+  if (total > 0 && onePct > 0) {
+    document.getElementById('onepct').textContent =
+      '1% likums: vajadzīga īre ' + fmt(onePct) + '/mēn · tu piedāvā ' + fmt(rent) + '/mēn';
+  }
 
   var v = document.getElementById('verdict');
-  if (netYield >= 8) {
-    v.style.background = '#edf5e8'; v.style.color = '#2d6a1f';
+  if (total === 0) {
+    v.style.background = 'var(--surface)'; v.style.color = 'var(--muted)';
+    v.textContent = 'Ievadi skaitļus augstāk';
+  } else if (netYield >= 8) {
+    v.style.background = '#0d2010'; v.style.color = '#32d74b';
     v.textContent = '✓ Spēcīgs darījums — virs 8% neto mērķa';
   } else if (netYield >= 6.5) {
-    v.style.background = '#fdf6e3'; v.style.color = '#8a6200';
+    v.style.background = '#2a2000'; v.style.color = '#ffd60a';
     v.textContent = '◐ Robežgadījums — pieņemams, bet ne ideāls';
-  } else if (netYield > 0) {
-    v.style.background = '#fcecea'; v.style.color = '#a32020';
-    v.textContent = '✕ Vājš — zem 6.5% neto, turpiniet meklēt';
   } else {
-    v.style.background = '#f7f6f2'; v.style.color = '#8a8880';
-    v.textContent = 'Ievadi skaitļus augstāk';
+    v.style.background = '#2a0a08'; v.style.color = '#ff453a';
+    v.textContent = '✕ Vājš — zem 6.5% neto, turpiniet meklēt';
   }
 }
 
-['price','trans','reno','furn','rent','exp','vac'].forEach(function(id) {
+['price','reno','furn','rent','exp','vac'].forEach(function(id) {
   document.getElementById(id).addEventListener('input', calc);
 });
 
